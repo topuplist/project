@@ -1,1 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Chat</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></script>
+
+    <!-- GSAP for Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.0/gsap.min.js"></script>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Chat Container -->
+    <div class="max-w-3xl mx-auto mt-10 p-6 bg-white shadow-xl rounded-lg">
+
+        <!-- Chat Window -->
+        <div class="chat-box overflow-y-scroll max-h-96 bg-gray-200 p-4 rounded-lg mb-4">
+            <div id="messages" class="space-y-4">
+                <!-- Messages will be inserted here dynamically -->
+            </div>
+        </div>
+
+        <!-- Message Input -->
+        <div class="input-container flex items-center space-x-4">
+            <input type="text" id="messageInput" class="flex-grow p-3 border border-gray-300 rounded-lg" placeholder="Type a message..." />
+            <button id="sendButton" class="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition duration-300">Send</button>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
+    <!-- Firebase Config -->
+   <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyDsKriCyYjHZTt_R4DEvN6ikFKm5fXSt-8",
+        authDomain: "stakehub-fc6be.firebaseapp.com",
+        databaseURL: "https://stakehub-fc6be-default-rtdb.firebaseio.com",
+        projectId: "stakehub-fc6be",
+        storageBucket: "stakehub-fc6be.appspot.com",
+        messagingSenderId: "990758331124",
+        appId: "1:990758331124:web:c7fb950f66d4ccb2eef4a1",
+        measurementId: "G-Y1244BGBK6"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+    const messagesRef = db.ref('messages');
+</script>
+
+
+</body>
+</html>
 
