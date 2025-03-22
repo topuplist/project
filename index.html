@@ -4,17 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Real-Time Chat</title>
-
-    <!-- Tailwind CSS CDN -->
+    
+    <!-- Tailwind CSS CDN for responsive design -->
     <script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></script>
-
-    <!-- GSAP for Animations -->
+    <!-- GSAP CDN for animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.0/gsap.min.js"></script>
 </head>
 <body class="bg-gray-100">
 
     <!-- Chat Container -->
     <div class="max-w-3xl mx-auto mt-10 p-6 bg-white shadow-xl rounded-lg">
+        
+        <!-- Authentication UI -->
+        <div id="auth-container" class="mb-6">
+            <input type="email" id="emailInput" class="p-3 border border-gray-300 rounded-lg w-full mb-4" placeholder="Email" />
+            <input type="password" id="passwordInput" class="p-3 border border-gray-300 rounded-lg w-full mb-4" placeholder="Password" />
+            <button id="signUpButton" class="w-full p-3 bg-green-500 text-white rounded-lg hover:bg-green-400 transition duration-300">Sign Up</button>
+            <button id="loginButton" class="w-full p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition duration-300 mt-2">Log In</button>
+            <p id="authError" class="text-red-600 mt-2"></p>
+        </div>
 
         <!-- Chat Window -->
         <div class="chat-box overflow-y-scroll max-h-96 bg-gray-200 p-4 rounded-lg mb-4">
@@ -28,7 +36,6 @@
             <input type="text" id="messageInput" class="flex-grow p-3 border border-gray-300 rounded-lg" placeholder="Type a message..." />
             <button id="sendButton" class="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition duration-300">Send</button>
         </div>
-
     </div>
 
     <!-- Firebase SDK -->
@@ -38,27 +45,93 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <!-- Firebase Config -->
-   <script>
-    // Firebase Configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyDsKriCyYjHZTt_R4DEvN6ikFKm5fXSt-8",
-        authDomain: "stakehub-fc6be.firebaseapp.com",
-        databaseURL: "https://stakehub-fc6be-default-rtdb.firebaseio.com",
-        projectId: "stakehub-fc6be",
-        storageBucket: "stakehub-fc6be.appspot.com",
-        messagingSenderId: "990758331124",
-        appId: "1:990758331124:web:c7fb950f66d4ccb2eef4a1",
-        measurementId: "G-Y1244BGBK6"
-    };
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDsKriCyYjHZTt_R4DEvN6ikFKm5fXSt-8",
+            authDomain: "stakehub-fc6be.firebaseapp.com",
+            databaseURL: "https://stakehub-fc6be-default-rtdb.firebaseio.com",
+            projectId: "stakehub-fc6be",
+            storageBucket: "stakehub-fc6be.appspot.com",
+            messagingSenderId: "990758331124",
+            appId: "1:990758331124:web:c7fb950f66d4ccb2eef4a1",
+            measurementId: "G-Y1244BGBK6"
+        };
 
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const auth = firebase.auth();
-    const messagesRef = db.ref('messages');
-</script>
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth();
+        const messagesRef = db.ref('messages');
 
+        // Show or hide authentication UI based on login state
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById('auth-container').style.display = 'none';
+                console.log('User logged in:', user.email);
+                loadMessages(); // Load messages when logged in
+            } else {
+                document.getElementById('auth-container').style.display = 'block';
+                console.log('No user logged in');
+            }
+        });
+
+        // Email and Password Sign-Up
+        document.getElementById('signUpButton').addEventListener('click', function() {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    console.log('User signed up:', userCredential.user.email);
+                })
+                .catch((error) => {
+                    document.getElementById('authError').textContent = error.message;
+                });
+        });
+
+        // Email and Password Log-In
+        document.getElementById('loginButton').addEventListener('click', function() {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    console.log('User logged in:', userCredential.user.email);
+                })
+                .catch((error) => {
+                    document.getElementById('authError').textContent = error.message;
+                });
+        });
+
+        // Send message functionality
+        document.getElementById('sendButton').addEventListener('click', function() {
+            const message = document.getElementById('messageInput').value;
+            if (message) {
+                messagesRef.push({
+                    user: auth.currentUser ? auth.currentUser.email : "Anonymous",
+                    text: message,
+                    timestamp: Date.now()
+                });
+                document.getElementById('messageInput').value = ''; // Clear input field
+            }
+        });
+
+        // Listen for new messages
+        messagesRef.on('child_added', function(snapshot) {
+            const messageData = snapshot.val();
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('bg-gray-300', 'p-3', 'rounded-lg', 'max-w-xs', 'mx-auto');
+            messageDiv.innerHTML = `
+                <strong class="text-blue-600">${messageData.user}</strong>: ${messageData.text}
+            `;
+            document.getElementById('messages').appendChild(messageDiv);
+
+            // Animation for new messages
+            gsap.from(messageDiv, { opacity: 0, y: 20, duration: 0.5 });
+
+            // Scroll to the bottom when new message is added
+            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+        });
+    </script>
 
 </body>
 </html>
-
